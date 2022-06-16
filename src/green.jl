@@ -228,8 +228,8 @@ function Gn(m::Model, g::GreenN, idx, level=1)
     # printstyled("...."^level, "start $level Gn-$idx\n", color=:green)
     if g.N == 1 # fast treatment of one-body Green's function
         i, o = idx[1], idx[2]
-        println(g.hop[o])
-        println(g.hop[i])
+        # println(g.hop[o])
+        # println(g.hop[i])
         if g.τ[i] < g.τ[o]
             return thermalavg(g.hop[o] * g.hop[i], m.E, m.β, m.Z)
         else
