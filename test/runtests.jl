@@ -1,6 +1,6 @@
-using Atom
 using Test
-
-@testset "Atom.jl" begin
-    # Write your tests here.
-end
+push!(LOAD_PATH, string(@__DIR__, "/../"))
+using Atom
+include("hilbert.jl")
+include("green.jl")
+include("hubbard.jl")
