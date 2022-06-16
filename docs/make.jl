@@ -15,6 +15,11 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "API reference" => Any[
+            "lib/green.md",
+            "lib/hubbard.md",
+            "lib/hilbert.md",
+        ]
     ]
 )
 

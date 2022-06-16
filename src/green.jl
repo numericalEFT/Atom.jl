@@ -8,7 +8,7 @@ export Gn, Gnc
 # using .Hilbert
 
 """
-Model(H::Operator, c⁺::Vector{Operator}, c⁻::Vector{Operator})
+    Model(H::Operator, c⁺::Vector{Operator}, c⁻::Vector{Operator})
 
 Construct a model.  All input operators are in the Fock space. But all members of Model struct is in the eigenspace.
 Operator should be a matrix type.
@@ -30,7 +30,7 @@ struct Model{N,No}
     c⁻::SVector{No,Operator} # anniliation operator in the eigenspace
     n::SVector{No,Operator}  # density operator in the eigenspace
 
-    function Model(β, H, _c⁺, isfermi = true)
+    function Model(β, H, _c⁺, isfermi=true)
         dim = size(H)[1]
         @assert size(H) == size(_c⁺[1])
         @assert size(H) == (dim, dim)
@@ -61,10 +61,12 @@ function thermalavg(o::Operator, E, β, Z)
     return avg / Z
 end
 """
-Heisenberg(o::Operator, E, τ)
+    Heisenberg(o::Operator, E, τ)
 
    Transform operator o into Heisenberg picture
-    exp(H * τ) * o * exp(-H * τ)
+```math
+    \\exp(Hτ)\\cdot o \\cdot \\exp(-Hτ)
+```
 """
 function Heisenberg(o::Operator, E, τ)
     if !(size(o) == (length(E), length(E)))
@@ -148,18 +150,21 @@ struct Partition
 end
 
 """
-GreenN(m::Model, τ, orbital, isfermi=true)
+    GreenN(m::Model, τ, orbital, isfermi=true)
 
 Construct struct to store the variables to evaulate N-body Green's functions.
 The leg index is assumed to be [1, 2, 3, ...,2N], where the incoming legs are 1:N, and the outgoing legs are N+1:2N
 The full Green's function is defined as,
 ```math
-Gn=<Tτ c(1)c(2)...c(N)c⁺(N+1)...c⁺(2N)>
+G_{2N}=\\left<\\mathcal{T} c_{2N}c_{2N-1}...c_{N+1}c^+_{N}...c^+_{2}c^+_{1}\\right>
 ```
+
 e.g.,
-1->------->-3
-    | G4 |        
-2->------->-4
+
+    1->------->-3
+        | G4 |        
+    2->------->-4
+
 All other Green's function are derived from the above full Green's function
 
 #Arguments
@@ -174,7 +179,7 @@ struct GreenN
     orbital::Vector{Int} # 1:2n, array of orbitals 
     hop::Vector{Operator}
     partition::Vector{Partition}
-    function GreenN(m::Model, τ, orbital, N = Int(length(τ) / 2))
+    function GreenN(m::Model, τ, orbital, N=Int(length(τ) / 2))
         # @assert length(τ) == length(orbital)
         # N = Int(length(τ) / 2)
 
@@ -200,17 +205,26 @@ function density(m::Model, orbital)
 end
 
 """
-Gn=<Tτ c(1)c(2)...c(N)c⁺(N+1)...c⁺(2N)>
+    @inline function Gn(m::Model, g::GreenN)
+
+    Evaluate the full N-body Green's function. 
+
+```math
+G_{2N}=\\left<\\mathcal{T} c_{2N}c_{2N-1}...c_{N+1}c^+_{N}...c^+_{2}c^+_{1}\\right>
+```
+
 e.g.,
-1->------->-3
-    | G4 |        
-2->------->-4
+
+    1->------->-3
+        | G4 |        
+    2->------->-4
+
 """
 @inline function Gn(m::Model, g::GreenN)
     return Gn(m, g, [i for i in 1:g.N*2])
 end
 
-function Gn(m::Model, g::GreenN, idx, level = 1)
+function Gn(m::Model, g::GreenN, idx, level=1)
     # printstyled("...."^level, "start $level Gn-$idx\n", color=:green)
     if g.N == 1 # fast treatment of one-body Green's function
         i, o = idx[1], idx[2]
@@ -240,15 +254,20 @@ function Gn(m::Model, g::GreenN, idx, level = 1)
 end
 
 """
-1->------->-4       1->------->-4     1->---   --->-4
-    | G4 |      -                  +         X   
-2->------->-3       2->------->-3     2->---   --->-3
+    function Gnc(m::Model, g::GreenN)
+
+    Evaluate the connected N-body Green's function.
+    
+e.g., G4c(43;21) =
+    1->------->-4       1->------->-4     1->---   --->-4
+        | G4 |      -                  +         X   
+    2->------->-3       2->------->-3     2->---   --->-3
 """
 @inline function Gnc(m::Model, g::GreenN)
     return Gnc(m, g, [i for i in 1:g.N*2])
 end
 
-function Gnc(m::Model, g::GreenN, idx, level = 1)
+function Gnc(m::Model, g::GreenN, idx, level=1)
     # printstyled("...."^level, "start $level Gc-$idx\n", color=:red)
     if length(idx) == 2 # case of G2
         return Gn(m, g, idx, level)
